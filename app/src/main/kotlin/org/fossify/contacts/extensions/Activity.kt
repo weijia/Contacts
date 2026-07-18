@@ -3,7 +3,7 @@ package org.fossify.contacts.extensions
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import android.widgetScrollView
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import org.fossify.commons.activities.BaseSimpleActivity
