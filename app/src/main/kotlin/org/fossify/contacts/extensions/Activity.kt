@@ -71,19 +71,19 @@ fun SimpleActivity.showContactSourcePicker(currentSource: String, callback: (new
     }
 }
 
-fun BaseSimpleActivity.showExportErrorDialog(title: String, message: String) {
+fun BaseSimpleActivity.showExportErrorDialog(message: String) {
     runOnUiThread {
-        val scrollView = ScrollView(this)
         val textView = TextView(this).apply {
             text = message
             textSize = 12f
             setPadding(48, 24, 48, 24)
             typeface = android.graphics.Typeface.MONOSPACE
+            setTextIsSelectable(true)
+            setTextColor(android.content.res.ColorStateList.valueOf(0xFF000000.toInt()))
         }
-        scrollView.addView(textView)
         AlertDialog.Builder(this)
-            .setTitle(title)
-            .setView(scrollView)
+            .setTitle("Export Error")
+            .setView(textView)
             .setPositiveButton(android.R.string.ok, null)
             .setCancelable(false)
             .show()
@@ -114,7 +114,7 @@ fun BaseSimpleActivity.shareContacts(contacts: ArrayList<Contact>) {
                 sharePathIntent(file.absolutePath, BuildConfig.APPLICATION_ID)
             } else {
                 if (!errorMsg.isNullOrEmpty()) {
-                    showExportErrorDialog("Export Failed", errorMsg)
+                    showExportErrorDialog(errorMsg)
                 } else {
                     showErrorToast("Export failed: $result")
                 }
