@@ -19,6 +19,8 @@ import org.fossify.commons.extensions.toast
 import org.fossify.commons.models.contacts.Contact
 import org.fossify.contacts.helpers.VcfExporter.ExportResult.EXPORT_FAIL
 import java.io.OutputStream
+import java.io.StringWriter
+import java.io.PrintWriter
 import java.time.LocalDate
 
 class VcfExporter {
@@ -35,11 +37,13 @@ class VcfExporter {
         contacts: ArrayList<Contact>,
         showExportingToast: Boolean,
         version: VCardVersion = VCardVersion.V4_0,
-        callback: (result: ExportResult) -> Unit,
+        callback: (result: ExportResult, errorMsg: String?) -> Unit,
     ) {
+        var errorMessage: String? = null
         try {
             if (outputStream == null) {
-                callback(EXPORT_FAIL)
+                errorMessage = "OutputStream is null, cannot export."
+                callback(EXPORT_FAIL, errorMessage)
                 return
             }
 
@@ -206,16 +210,20 @@ class VcfExporter {
 
             Ezvcard.write(cards).version(version).go(outputStream)
         } catch (e: Exception) {
-            context.showErrorToast(e)
+            e.printStackTrace()
+            val sw = StringWriter()
+            e.printStackTrace(PrintWriter(sw))
+            errorMessage = "${e.javaClass.simpleName}: ${e.message}\n\n${sw}"
         }
 
-        callback(
-            when {
-                contactsExported == 0 -> EXPORT_FAIL
-                contactsFailed > 0 -> ExportResult.EXPORT_PARTIAL
-                else -> ExportResult.EXPORT_OK
-            }
-        )
+        val result = when {
+            errorMessage != null -> EXPORT_FAIL
+            contactsExported == 0 -> EXPORT_FAIL
+            contactsFailed > 0 -> ExportResult.EXPORT_PARTIAL
+            else -> ExportResult.EXPORT_OK
+        }
+
+        callback(result, errorMessage)
     }
 
     private fun getPhoneNumberTypeLabel(type: Int, label: String) = when (type) {
