@@ -377,19 +377,7 @@ class SettingsActivity : SimpleActivity() {
                     showExportingToast = true
                 ) { result, errorMsg ->
                     if (!errorMsg.isNullOrEmpty()) {
-                        val scrollView = android.widget.ScrollView(this@SettingsActivity)
-                        val textView = android.widget.TextView(this@SettingsActivity).apply {
-                            text = errorMsg
-                            textSize = 12f
-                            setPadding(48, 24, 48, 24)
-                            typeface = android.graphics.Typeface.MONOSPACE
-                        }
-                        scrollView.addView(textView)
-                        val builder = androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
-                            builder.setTitle(org.fossify.contacts.R.string.export_contacts)
-                            builder.setView(scrollView)
-                            builder.setPositiveButton(android.R.string.ok, null)
-                            builder.show()
+                        showExportErrorDialog(errorMsg)
                         return@exportContacts
                     }
                     toast(
