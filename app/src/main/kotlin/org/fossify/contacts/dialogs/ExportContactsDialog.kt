@@ -1,7 +1,5 @@
 package org.fossify.contacts.dialogs
 
-import android.widget.ScrollView
-import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import org.fossify.commons.dialogs.FilePickerDialog
 import org.fossify.commons.extensions.*
@@ -14,7 +12,6 @@ import org.fossify.contacts.activities.SimpleActivity
 import org.fossify.contacts.adapters.FilterContactSourcesAdapter
 import org.fossify.contacts.databinding.DialogExportContactsBinding
 import org.fossify.contacts.extensions.config
-import org.fossify.contacts.helpers.VcfExporter
 import java.io.File
 
 class ExportContactsDialog(
@@ -86,51 +83,8 @@ class ExportContactsDialog(
                                         .filter { !selectedSources.contains(it) }
                                         .map { it.getFullIdentifier() }
                                         .toHashSet()
-
-                                    activity.getFileOutputStream(file.toFileDirItem(activity), true) { outputStream ->
-                                        VcfExporter().exportContacts(
-                                            context = activity,
-                                            outputStream = outputStream,
-                                            contacts = contacts,
-                                            showExportingToast = true
-                                        ) { result, errorMsg ->
-                                            if (result == VcfExporter.ExportResult.EXPORT_OK) {
-                                                activity.toast(org.fossify.commons.R.string.exporting_successful)
-                                                callback(file, ignoredSources)
-                                                alertDialog.dismiss()
-                                            } else if (result == VcfExporter.ExportResult.EXPORT_PARTIAL) {
-                                                activity.toast(org.fossify.commons.R.string.exporting_some_entries_failed)
-                                                callback(file, ignoredSources)
-                                                alertDialog.dismiss()
-                                            } else {
-                                                // EXPORT_FAIL: show error details in a dialog
-                                                if (!errorMsg.isNullOrEmpty()) {
-                                                    activity.runOnUiThread {
-                                                        val scrollView = ScrollView(activity)
-                                                        val textView = TextView(activity).apply {
-                                                            text = errorMsg
-                                                            textSize = 12f
-                                                            setPadding(48, 24, 48, 24)
-                                                            typeface = android.graphics.Typeface.MONOSPACE
-                                                        }
-                                                        scrollView.addView(textView)
-                                                        AlertDialog.Builder(activity)
-                                                            .setTitle(R.string.export_contacts)
-                                                            .setMessage("Export failed with error:")
-                                                            .setView(scrollView)
-                                                            .setPositiveButton(android.R.string.ok) { _, _ ->
-                                                                alertDialog.dismiss()
-                                                            }
-                                                            .setCancelable(false)
-                                                            .show()
-                                                    }
-                                                } else {
-                                                    activity.toast(org.fossify.commons.R.string.exporting_failed)
-                                                    alertDialog.dismiss()
-                                                }
-                                            }
-                                        }
-                                    }
+                                    callback(file, ignoredSources)
+                                    alertDialog.dismiss()
                                 }
                             }
 
