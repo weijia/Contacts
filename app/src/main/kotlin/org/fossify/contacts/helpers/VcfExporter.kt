@@ -151,19 +151,26 @@ class VcfExporter {
                 }
 
                 contact.IMs.forEach {
-                    val impp = when (it.type) {
-                        Im.PROTOCOL_AIM -> Impp.aim(it.value)
-                        Im.PROTOCOL_YAHOO -> Impp.yahoo(it.value)
-                        Im.PROTOCOL_MSN -> Impp.msn(it.value)
-                        Im.PROTOCOL_ICQ -> Impp.icq(it.value)
-                        Im.PROTOCOL_SKYPE -> Impp.skype(it.value)
-                        Im.PROTOCOL_GOOGLE_TALK -> Impp(HANGOUTS, it.value)
-                        Im.PROTOCOL_QQ -> Impp(QQ, it.value)
-                        Im.PROTOCOL_JABBER -> Impp(JABBER, it.value)
-                        else -> Impp(it.label, it.value)
+                    try {
+                        val impp = when (it.type) {
+                            Im.PROTOCOL_AIM -> Impp.aim(it.value)
+                            Im.PROTOCOL_YAHOO -> Impp.yahoo(it.value)
+                            Im.PROTOCOL_MSN -> Impp.msn(it.value)
+                            Im.PROTOCOL_ICQ -> Impp.icq(it.value)
+                            Im.PROTOCOL_SKYPE -> Impp.skype(it.value)
+                            Im.PROTOCOL_GOOGLE_TALK -> Impp(HANGOUTS, it.value)
+                            Im.PROTOCOL_QQ -> Impp(QQ, it.value)
+                            Im.PROTOCOL_JABBER -> Impp(JABBER, it.value)
+                            else -> {
+                                val label = it.label.ifEmpty { "x-custom" }
+                                Impp(label, it.value)
+                            }
+                        }
+                        card.addImpp(impp)
+                    } catch (e: Exception) {
+                        // Skip invalid IM entries (e.g. empty scheme causing URISyntaxException)
+                        e.printStackTrace()
                     }
-
-                    card.addImpp(impp)
                 }
 
                 if (contact.notes.isNotEmpty()) {
