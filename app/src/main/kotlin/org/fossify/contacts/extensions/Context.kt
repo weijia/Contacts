@@ -137,9 +137,25 @@ fun Context.backupContacts() {
                 outputStream = outputStream,
                 contacts = contactsToBackup.toMutableList() as ArrayList<Contact>,
                 showExportingToast = false
-            ) { exportResult ->
+            ) { exportResult, errorMsg ->
                 if (exportResult == VcfExporter.ExportResult.EXPORT_FAIL) {
-                    toast(org.fossify.commons.R.string.exporting_failed)
+                    if (!errorMsg.isNullOrEmpty()) {
+                        val scrollView = android.widget.ScrollView(this)
+                        val textView = android.widget.TextView(this).apply {
+                            text = errorMsg
+                            textSize = 12f
+                            setPadding(48, 24, 48, 24)
+                            typeface = android.graphics.Typeface.MONOSPACE
+                        }
+                        scrollView.addView(textView)
+                        androidx.appcompat.app.AlertDialog.Builder(this)
+                            .setTitle("Auto Backup Failed")
+                            .setView(scrollView)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show()
+                    } else {
+                        toast(org.fossify.commons.R.string.exporting_failed)
+                    }
                 }
             }
 
