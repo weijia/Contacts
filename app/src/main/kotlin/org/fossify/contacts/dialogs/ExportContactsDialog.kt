@@ -99,7 +99,7 @@ class ExportContactsDialog(
                                                 callback(file, ignoredSources)
                                                 alertDialog.dismiss()
                                             } else if (result == VcfExporter.ExportResult.EXPORT_PARTIAL) {
-                                                activity.toast(org.fossify.commons.R.string.exporting_partially_successful)
+                                                activity.toast(org.fossify.commons.R.string.exporting_some_entries_failed)
                                                 callback(file, ignoredSources)
                                                 alertDialog.dismiss()
                                             } else {
