@@ -375,7 +375,11 @@ class SettingsActivity : SimpleActivity() {
                     outputStream = outputStream,
                     contacts = contacts,
                     showExportingToast = true
-                ) { result ->
+                ) { result, errorMsg ->
+                    if (!errorMsg.isNullOrEmpty()) {
+                        org.fossify.commons.extensions.showErrorToast(org.fossify.commons.R.string.exporting_failed)
+                        return@exportContacts
+                    }
                     toast(
                         when (result) {
                             VcfExporter.ExportResult.EXPORT_OK -> org.fossify.commons.R.string.exporting_successful
