@@ -3,6 +3,9 @@ package org.fossify.contacts.extensions
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.widgetScrollView
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import org.fossify.commons.activities.BaseSimpleActivity
 import org.fossify.commons.dialogs.RadioGroupDialog
 import org.fossify.commons.extensions.getFileOutputStream
@@ -68,6 +71,25 @@ fun SimpleActivity.showContactSourcePicker(currentSource: String, callback: (new
     }
 }
 
+fun BaseSimpleActivity.showExportErrorDialog(title: String, message: String) {
+    runOnUiThread {
+        val scrollView = ScrollView(this)
+        val textView = TextView(this).apply {
+            text = message
+            textSize = 12f
+            setPadding(48, 24, 48, 24)
+            typeface = android.graphics.Typeface.MONOSPACE
+        }
+        scrollView.addView(textView)
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(scrollView)
+            .setPositiveButton(android.R.string.ok, null)
+            .setCancelable(false)
+            .show()
+    }
+}
+
 fun BaseSimpleActivity.shareContacts(contacts: ArrayList<Contact>) {
     val filename = if (contacts.size == 1) {
         "${contacts.first().getNameToDisplay()}.vcf"
@@ -87,11 +109,15 @@ fun BaseSimpleActivity.shareContacts(contacts: ArrayList<Contact>) {
             outputStream = it,
             contacts = contacts,
             showExportingToast = false
-        ) {
-            if (it == VcfExporter.ExportResult.EXPORT_OK) {
+        ) { result, errorMsg ->
+            if (result == VcfExporter.ExportResult.EXPORT_OK) {
                 sharePathIntent(file.absolutePath, BuildConfig.APPLICATION_ID)
             } else {
-                showErrorToast("$it")
+                if (!errorMsg.isNullOrEmpty()) {
+                    showExportErrorDialog("Export Failed", errorMsg)
+                } else {
+                    showErrorToast("Export failed: $result")
+                }
             }
         }
     }
