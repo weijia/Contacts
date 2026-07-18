@@ -140,17 +140,17 @@ fun Context.backupContacts() {
             ) { exportResult, errorMsg ->
                 if (exportResult == VcfExporter.ExportResult.EXPORT_FAIL) {
                     if (!errorMsg.isNullOrEmpty()) {
-                        val scrollView = android.widget.ScrollView(this)
                         val textView = android.widget.TextView(this).apply {
                             text = errorMsg
                             textSize = 12f
                             setPadding(48, 24, 48, 24)
                             typeface = android.graphics.Typeface.MONOSPACE
+                            setTextIsSelectable(true)
+                            setTextColor(android.content.res.ColorStateList.valueOf(0xFF000000.toInt()))
                         }
-                        scrollView.addView(textView)
                         androidx.appcompat.app.AlertDialog.Builder(this)
                             .setTitle("Auto Backup Failed")
-                            .setView(scrollView)
+                            .setView(textView)
                             .setPositiveButton(android.R.string.ok, null)
                             .show()
                     } else {
