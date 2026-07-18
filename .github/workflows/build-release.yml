@@ -56,22 +56,34 @@ jobs:
         echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/app/release-key.jks
         echo "Keystore decoded"
 
-    - name: Build Release APK
+    - name: Build Release APK (foss flavor)
       env:
         SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         SIGNING_STORE_FILE: ${{ github.workspace }}/app/release-key.jks
         SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
       run: |
-        ./gradlew assembleRelease
+        ./gradlew assembleFossRelease
 
-    # ========== 重命名 APK ==========
-    - name: Rename APK with version
+    # ========== 查找并重命名 APK ==========
+    - name: Find and rename APK with version
+      id: apk
       run: |
         mkdir -p renamed
-        cp app/build/outputs/apk/release/contacts-${{ steps.version.outputs.build_number }}.apk \
-           renamed/${{ steps.version.outputs.apk_name }}
+        # 项目有 flavor，APK 在 foss/release 子目录下
+        FOUND_APK=$(find app/build/outputs/apk -name "*.apk" -path "*/foss/release/*" | head -1)
+        if [ -z "$FOUND_APK" ]; then
+          echo "Foss APK not found, trying all release APKs..."
+          FOUND_APK=$(find app/build/outputs/apk -name "*.apk" | head -1)
+        fi
+        if [ -z "$FOUND_APK" ]; then
+          echo "Error: No APK found!"
+          exit 1
+        fi
+        echo "Found APK: $FOUND_APK"
+        cp "$FOUND_APK" "renamed/${{ steps.version.outputs.apk_name }}"
         echo "APK renamed to ${{ steps.version.outputs.apk_name }}"
+        echo "apk_path=renamed/${{ steps.version.outputs.apk_name }}" >> $GITHUB_OUTPUT
 
     # ========== SFTP 上传 ==========
     - name: Upload APK to SFTP
@@ -82,7 +94,7 @@ jobs:
         sftp-port: ${{ secrets.SFTP_PORT }}
         sftp-username: ${{ secrets.SFTP_USERNAME }}
         sftp-password: ${{ secrets.SFTP_PASSWORD }}
-        source-path: renamed/${{ steps.version.outputs.apk_name }}
+        source-path: ${{ steps.apk.outputs.apk_path }}
         remote-path: /home/github/apps/contacts/${{ steps.version.outputs.apk_name }}
         cleanup-old-files: 'true'
         max-keep-files: 5
@@ -92,7 +104,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: contacts-release-apk
-        path: renamed/${{ steps.version.outputs.apk_name }}
+        path: ${{ steps.apk.outputs.apk_path }}
 
     # ========== 提交 versionCode 更新 ==========
     - name: Commit versionCode update
@@ -109,6 +121,6 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: renamed/${{ steps.version.outputs.apk_name }}
+        files: ${{ steps.apk.outputs.apk_path }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
