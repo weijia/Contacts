@@ -385,11 +385,11 @@ class SettingsActivity : SimpleActivity() {
                             typeface = android.graphics.Typeface.MONOSPACE
                         }
                         scrollView.addView(textView)
-                        androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
-                            .setTitle(org.fossify.commons.R.string.export_contacts)
-                            .setView(scrollView)
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show()
+                        val builder = androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
+                            builder.setTitle(org.fossify.contacts.R.string.export_contacts)
+                            builder.setView(scrollView)
+                            builder.setPositiveButton(android.R.string.ok, null)
+                            builder.show()
                         return@exportContacts
                     }
                     toast(
